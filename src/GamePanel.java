@@ -20,8 +20,8 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener{
 	public static final int RUNNING =1;
 	public static final int GAME_OVER =2;
 
-	private int width = 800;
-	private int height = 533;
+	static int width = 800;
+	static int height = 533;
 
 	// 游戏状态
 	public static int state = START;
@@ -37,12 +37,16 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener{
 
 
 
+
+
 	public GamePanel(JFrame frame) {
 		
 		this.frame = frame;
 
 		this.addMouseListener(this);
 		this.setFocusable(true);
+
+
 		Thread t = new Thread(this);
 		t.start();
 		
@@ -56,9 +60,13 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener{
 		// 画种子银行
 		if(state==RUNNING) {
 			
-			g.drawImage(seedBank.getImage(), seedBank.x, seedBank.y, (width/4)*3, seedBank.height, null);
+			g.drawImage(seedBank.getImage(), seedBank.x, seedBank.y, SeedBank.width, SeedBank.height, null);
 
-			g.drawString(""+sunCount, 90, 100);
+			g.drawString(""+sunCount, 50, 100);
+
+			seedBank.loadSeedPacket(g);
+
+
 		}
 		
 	}

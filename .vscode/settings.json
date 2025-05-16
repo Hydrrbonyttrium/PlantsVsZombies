@@ -2,4 +2,5 @@
     "Codegeex.RepoIndex": true,
     "Codegeex.CompletionDelay": 0.2,
     "java.project.outputPath": "${workspaceFolder:}/bin",
+    "Codegeex.CommitMessageStyle": "Default",
 }

@@ -1,7 +1,5 @@
 import java.awt.*;
 
-import javafx.scene.layout.Background;
-
 
 public class BackGround {
     public Image[] images = new Image[3];
