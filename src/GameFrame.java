@@ -1,11 +1,13 @@
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import java.awt.event.MouseAdapter;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 
-public class GameFrame extends JFrame {
+public class GameFrame extends JFrame  {
 
 	private JPanel contentPane;
 	
@@ -40,9 +42,22 @@ public class GameFrame extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
-		GamePanel gamePanel = new GamePanel();
+		GamePanel gamePanel = new GamePanel(this);
+		gamePanel.addMouseListener(new MouseAdapter() {
+			
+		});
 		gamePanel.setBounds(0, 0, 820, 540);
 		contentPane.add(gamePanel);
+		GroupLayout gl_gamePanel = new GroupLayout(gamePanel);
+		gl_gamePanel.setHorizontalGroup(
+			gl_gamePanel.createParallelGroup(Alignment.LEADING)
+				.addGap(0, 820, Short.MAX_VALUE)
+		);
+		gl_gamePanel.setVerticalGroup(
+			gl_gamePanel.createParallelGroup(Alignment.LEADING)
+				.addGap(0, 540, Short.MAX_VALUE)
+		);
+		gamePanel.setLayout(gl_gamePanel);
 
 		// 设置窗口标题
 		setTitle("植物大战僵尸");
@@ -52,7 +67,13 @@ public class GameFrame extends JFrame {
 		// 设置窗口位置
 		setLocationRelativeTo(null);
 		// 设置窗口不可调整大小
-		setResizable(false);
+		// setResizable(false);
+		
 
 	}
+
+
+
+	
+
 }
