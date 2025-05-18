@@ -3,4 +3,5 @@
     "Codegeex.CompletionDelay": 0.2,
     "java.project.outputPath": "${workspaceFolder:}/bin",
     "Codegeex.CommitMessageStyle": "Default",
+    "Codegeex.Chat.fontSize": 10,
 }
