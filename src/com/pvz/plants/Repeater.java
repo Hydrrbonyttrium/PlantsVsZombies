@@ -2,14 +2,13 @@ package com.pvz.plants;
 
 import java.awt.*;
 
+import com.pvz.bullets.Bullets;
+import com.pvz.bullets.PeaBullet;
+
 public class Repeater extends Plants {
-    public Repeater(int x, int y) {
-        super(x, y);
-        // Toolkit toolkit = Toolkit.getDefaultToolkit();
-        // image = new Image[5];
-        // for (int i = 0; i < image.length; i++) {
-        //     image[i] = toolkit.getImage(getClass().getClassLoader().getResource("resourse/images/plants/Repeater" + i + ".png"));
-        // }
+    public Repeater(int x, int y,int row,int column) {
+        super(x, y, row, column);
+        this.attackInterval = 1000; // Attack interval in milliseconds
     }
 
     @Override
@@ -20,6 +19,11 @@ public class Repeater extends Plants {
     @Override
     public void update() {
         // Update logic for Repeater plant
+    }
+
+    @Override
+    public Bullets attack() {
+       return new PeaBullet(x, y,row);
     }
 
 }

@@ -61,7 +61,7 @@ public  class SeedPackets {
         switch (name) {
 
             case "SeedPacketRepeater":
-                return new Repeater(x, y);
+                return new Repeater(x, y,0,0);
             default:
                 return null; // Handle other cases or throw an exception
         }

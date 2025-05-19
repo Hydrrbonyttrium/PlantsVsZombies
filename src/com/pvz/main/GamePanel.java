@@ -5,14 +5,22 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import com.pvz.bullets.Bullets;
 import com.pvz.plants.Plants;
 import com.pvz.ui.BackGround;
 import com.pvz.ui.Cube;
 import com.pvz.ui.SeedBank;
+import com.pvz.zombies.FlageZombie;
+import com.pvz.zombies.Zombies;
 
 
 
@@ -51,11 +59,15 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	public int currentMousey;
 
 	Image plantingImage = null;
-	Cube[][] cubes = new Cube[5][9];
+	public static Cube[][] cubes = new Cube[5][9];
 	Plants currentPlant=null;
 
+	public static List<List<Bullets>> bullets = new ArrayList<List<Bullets>>();
+	public static List<List<Zombies>> zombies = new ArrayList<List<Zombies>>();
 
 
+	private Timer zombieSpawnTimer;
+	private final int ZOMBIE_SPAWN_INTERVAL = 2000; // 5 seconds
 
 	public GamePanel(JFrame frame) {
 		
@@ -66,14 +78,22 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 				cubes[i][j] = new Cube(i,j);
 			}
 		}
+		for(int i=0;i<5;i++) {
+			bullets.add(new ArrayList<Bullets>());
+		}
+		for(int i=0;i<5;i++) {
+			zombies.add(new ArrayList<Zombies>());
+		}
 
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
 		this.setFocusable(true);
 
+		initSpawnZombie();
 
 		Thread t = new Thread(this);
 		t.start();
+		
 		
 	}
 
@@ -102,6 +122,23 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 				// 画植物
 				g.drawImage(plantingImage, currentMousex-plantingImage.getWidth(null)/2, currentMousey-plantingImage.getHeight(null)/2, null);
 			}
+
+			// 画子弹
+			for (int i = 0; i < bullets.size(); i++) {
+				List<Bullets> bulletList = bullets.get(i);
+				Iterator<Bullets> iterator = bulletList.iterator();
+				while (iterator.hasNext()) {
+					Bullets bullet = iterator.next();
+					bullet.move();
+					bullet.draw(g);
+					if (bullet.isOutOfBounds(width, height)) {
+						iterator.remove();
+					}
+				}
+			}
+
+			// 画僵尸
+			drawZombies(g);
 		}
 		
 	}
@@ -116,7 +153,26 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 			frame.setSize(width, height);
 			frame.setLocationRelativeTo(null);
 			this.setSize(width, height);
+			
+			// 生成僵尸
+			if (state == RUNNING) {
 
+				for (int i = 0; i < zombies.size(); i++) {
+					List<Zombies> zombie_row = zombies.get(i);
+					Iterator<Zombies> iterator = zombie_row.iterator();
+					while (iterator.hasNext()) {
+						Zombies zombie = iterator.next();
+						zombie.move();
+						if (!zombie.isAlive()) {
+							iterator.remove();
+						}
+					}
+				}
+				checkBulletZombieCollisions(); // 检查子弹和僵尸的碰撞
+
+				attack(); // 攻击子弹
+
+			}
 
 
 			this.repaint();
@@ -127,6 +183,8 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 			}
 		}
 	}
+	
+	
 	
 
 
@@ -221,39 +279,30 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
 	}
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		// TODO Auto-generated method stub
 		// 获得鼠标的坐标
-		
 		currentMousex = e.getX();
 		currentMousey = e.getY();
-
 		// System.out.println(currentMousex+" "+currentMousey);
 
 	}
@@ -276,4 +325,98 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		return nearestCube;
 	}
 	
+	public void attack() {
+		// 遍历所有植物，攻击子弹
+		for (int i = 0; i < cubes.length; i++) {
+			for (int j = 0; j < cubes[i].length; j++) {
+				Cube cube = cubes[i][j];
+				if (cube.getPlant() != null && cube.getPlant().isalive) {
+					Plants plant = cube.getPlant();
+					int row = cube.getRow();
+					// 检查植物是否可以攻击
+					if(plant.canAttack(row)){
+
+						bullets.get(row).add(cube.getPlant().attack());
+						plant.setAttackCooldown(); // 设置攻击冷却
+					}
+				}
+			}
+		}
+	}
+
+	private void spawnZombie() {
+		int row = (int)(Math.random() * 5); // 随机选择行
+		int x = 1000; // 屏幕右侧
+		int y = 180 + (row-1) * 120; // 根据行计算y坐标
+		
+		// 随机选择僵尸类型
+		int zombieType = (int)(Math.random() * 3); // 假设有3种僵尸类型
+		switch (zombieType) {
+			case 0:
+				zombies.get(row).add(new FlageZombie(x, y, row));
+				break;
+		
+			default:
+				break;
+		}
+	}
+
+	public void drawZombies(Graphics g) {
+		for (List<Zombies> zombie_row : zombies) {
+			Iterator<Zombies> iterator = zombie_row.iterator();
+			while (iterator.hasNext()) {
+				Zombies zombie = iterator.next();
+				zombie.draw(g);
+				if (!zombie.isAlive()) {
+					iterator.remove();
+				}
+			}
+		}
+	}
+
+	public void initSpawnZombie() {
+		zombieSpawnTimer = new Timer();
+		zombieSpawnTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				spawnZombie();
+			}
+		}, 0, ZOMBIE_SPAWN_INTERVAL);
+	}
+
+	private void checkBulletZombieCollisions() {
+		// 遍历每一行
+		for (int row = 0; row < bullets.size(); row++) {
+			List<Bullets> bulletList = bullets.get(row);
+			List<Zombies> zombieList = zombies.get(row);
+			
+			// 使用迭代器避免并发修改异常
+			Iterator<Bullets> bulletIterator = bulletList.iterator();
+			while (bulletIterator.hasNext()) {
+				Bullets bullet = bulletIterator.next();
+				boolean hitZombie = false;
+				
+				// 检查该行的所有僵尸
+				Iterator<Zombies> zombieIterator = zombieList.iterator();
+				while (zombieIterator.hasNext() && !hitZombie) {
+					Zombies zombie = zombieIterator.next();
+					
+					// 简单的矩形碰撞检测
+					if (bullet.x + bullet.width > zombie.x && 
+						bullet.x < zombie.x + zombie.width) {
+						
+						// 子弹击中僵尸
+						zombie.health -= bullet.damage;
+						hitZombie = true;
+						bulletIterator.remove();
+						
+						// 检查僵尸是否死亡
+						if (zombie.health <= 0) {
+							zombie.isAlive = false;
+						}
+					}
+				}
+			}
+		}
+	}
 }
