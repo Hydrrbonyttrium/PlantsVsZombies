@@ -15,6 +15,7 @@ public abstract class Bullets {
     public boolean isHit = false;
     public boolean isDead = false;
     public int row;
+    public String path;
 
     public Bullets(float x, float y,int row) {
         loadImage("resourse/images/Bullets/"+getClass().getSimpleName()+"0.png");
@@ -51,6 +52,8 @@ public abstract class Bullets {
         isDead = true;
     }
 
-
+    public void dispose() {
+        image = null; // Set the image to null for garbage collection
+    }
 
 }

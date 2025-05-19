@@ -6,15 +6,17 @@ import com.pvz.bullets.Bullets;
 import com.pvz.bullets.PeaBullet;
 
 public class Repeater extends Plants {
-    public Repeater(int x, int y,int row,int column) {
-        super(x, y, row, column);
+    
+    
+    public Repeater(int x, int y,int row,int column,int animationImageCount) {
+        super(x, y, row, column,5); // Call the superclass constructor with the given x and y coordinates
         this.attackInterval = 1000; // Attack interval in milliseconds
+        this.damage = 10; // Damage dealt by the Repeater
+        this.health = 100; // Health of the Repeater
+        this.animationImageCount = 5;
+        
     }
 
-    @Override
-    public void grow(Graphics g) {
-        g.drawImage(image[0], x-width/2, y-height/2, width, height, null);
-    }
 
     @Override
     public void update() {
@@ -23,7 +25,7 @@ public class Repeater extends Plants {
 
     @Override
     public Bullets attack() {
-       return new PeaBullet(x, y,row);
+       return new PeaBullet(x, y-25,row);
     }
 
 }

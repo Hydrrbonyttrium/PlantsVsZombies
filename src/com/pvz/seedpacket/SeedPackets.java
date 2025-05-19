@@ -6,17 +6,18 @@ import java.awt.*;
 import com.pvz.main.GamePanel;
 import com.pvz.plants.Plants;
 import com.pvz.plants.Repeater;
+import com.pvz.plants.SunFlower;
 import com.pvz.ui.SeedBank;
 
 
 public  class SeedPackets {
-    protected int x;
-    protected int y;
-    protected int width;
-    protected int height;
-    protected Image image;
-    protected boolean enabled; // Flag to indicate if the seed packet is enabled
-    protected boolean isSelected; // Flag to indicate if the seed packet is selected
+    public int x;
+    public int y;
+    public int width;
+    public int height;
+    public Image image;
+    public boolean enabled; // Flag to indicate if the seed packet is enabled
+    public boolean isSelected; // Flag to indicate if the seed packet is selected
     public int cost;
     public String name;
     public Plants plant; // The plant associated with the seed packet
@@ -61,7 +62,9 @@ public  class SeedPackets {
         switch (name) {
 
             case "SeedPacketRepeater":
-                return new Repeater(x, y,0,0);
+                return new Repeater(x, y,0,0,5);
+            case "SeedPacketSunFlower" :
+                return new SunFlower(x, y, 0,0);
             default:
                 return null; // Handle other cases or throw an exception
         }
@@ -105,9 +108,12 @@ public  class SeedPackets {
     public void checkEnabled() {
         if(this.cost<=GamePanel.sunCount) {
             enabled = true; // Enable the seed packet if the cost is less than or equal to the sun count
+            image = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resourse/images/seedPacket/"+getClass().getSimpleName()+".png"));
         } else {
             enabled = false; // Disable the seed packet if the cost is greater than the sun count
+            image = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resourse/images/seedPacket/"+getClass().getSimpleName()+"_disabled.png"));
         }
+
     }
 
     

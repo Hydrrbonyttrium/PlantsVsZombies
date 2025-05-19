@@ -3,45 +3,19 @@ package com.pvz.zombies;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 
+import com.pvz.plants.Plants;
+
 public class FlageZombie  extends Zombies {
 
 
     public FlageZombie(int x, int y, int row) {
         super(x, y, row);
         this.speed = -1; // Speed of the FlageZombie
+        this.ORIGINAL_SPEED = speed; // Original speed of the FlageZombie
+        this.health = 100; // Health of the FlageZombie
+        this.maxHealth = health; // Maximum health of the FlageZombie
+        this.damage = 10; // Damage dealt by the FlageZombie
+        this.attackInterval = 500; // Attack interval in milliseconds
 
     }
-
-    public void attack() {
-        // Implement attack logic here
-    }
-
-    public void takeDamage(int damage) {
-        this.health -= damage;
-        if (this.health <= 0) {
-            isAlive = false;
-        }
-    }
-
-    public boolean isAlive() {
-        return isAlive;
-    }
-
-    public void setAlive(boolean alive) {
-        isAlive = alive;
-    }
-
-    public void loadImage() {
-        // Load the image for the FlageZombie
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        image = toolkit.getImage(getClass().getClassLoader().getResource("resourse/images/zombies/FlageZombie0.png"));
-    }
-
-    public void draw(Graphics g) {
-        // Implement drawing logic here
-        g.drawImage(image, x, y, null);
-    }
-
-
-
 }

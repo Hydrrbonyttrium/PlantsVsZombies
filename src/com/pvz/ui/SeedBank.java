@@ -4,6 +4,7 @@ import java.awt.*;
 
 import com.pvz.main.GamePanel;
 import com.pvz.seedpacket.SeedPacketRepeater;
+import com.pvz.seedpacket.SeedPacketSunFlower;
 import com.pvz.seedpacket.SeedPackets;
 
 public class SeedBank {
@@ -14,7 +15,7 @@ public class SeedBank {
     public static int width = (GamePanel.width/4)*3;//100
     public static int height = 120;
     public SeedPackets[] seedPackets = new SeedPackets[5]; // Array to hold seed packets
-    public int seedPacketCount = 1; // Counter for the number of seed packets
+    public int seedPacketCount = 2; // Counter for the number of seed packets
 
     public static int selectedPacekets = -1; // Index of the selected seed packet
 
@@ -22,6 +23,7 @@ public class SeedBank {
         this.x = x;
         this.y = y;
         seedPackets[0] = new SeedPacketRepeater(100,5);
+        seedPackets[1] = new SeedPacketSunFlower(100+seedPackets[0].width,5);
     }
     public Image getImage() {
         return image;
@@ -34,11 +36,7 @@ public class SeedBank {
             // 例如：遍历种子包数组并绘制
             for (SeedPackets packet : seedPackets) {
                 if (packet != null) {
-                    if(packet.cost<=GamePanel.sunCount) {
-                        packet.setEnabled(true); // Enable the seed packet if the cost is less than or equal to the sun count
-                    } else {
-                        packet.setEnabled(false); // Disable the seed packet if the cost is greater than the sun count
-                    }
+                    packet.checkEnabled(); // Check if the seed packet is enabled
                     packet.draw(g); // Draw each seed packet
                 }
             }
