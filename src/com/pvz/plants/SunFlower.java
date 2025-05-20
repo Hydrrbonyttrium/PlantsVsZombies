@@ -9,9 +9,10 @@ import com.pvz.bullets.SunBullet;
 public class SunFlower extends Plants  {
     public SunFlower(int x, int y, int row, int column) {
         super(x, y, row, column,17); // Call the superclass constructor with the given x and y coordinates
-        this.attackInterval = 60000; // Attack interval in milliseconds
+        this.attackInterval = 30000; // Attack interval in milliseconds
         this.damage = 0; // Damage dealt by the Repeater
         this.health = 100; // Health of the Repeater
+        setAttackCooldown();
     }
 
 

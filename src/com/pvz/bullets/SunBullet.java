@@ -4,7 +4,7 @@ import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Timer;
-public class SunBullet extends Bullets implements MouseListener {
+public class SunBullet extends Bullets  {
     private int SUN_DISAPPER_TIMER = 30000;
     private boolean isCollected;
     public Timer sunTimer;
@@ -36,7 +36,7 @@ public class SunBullet extends Bullets implements MouseListener {
     @Override
     public void loadImage(String path) {
         Toolkit toolkit = Toolkit.getDefaultToolkit();
-        image = toolkit.getImage(getClass().getClassLoader().getResource("resourse/images/Bullets/SunBullet0.gif"));
+        image = toolkit.getImage(getClass().getClassLoader().getResource("resource/images/Bullets/SunBullet0.gif"));
         
     }
 
@@ -45,46 +45,10 @@ public class SunBullet extends Bullets implements MouseListener {
         super.draw(g);
     }
 
-    @Override
-    public void mouseClicked(MouseEvent e) {
+    
         
-        // 获取鼠标点击位置
-        int mouseX = e.getX();
-        int mouseY = e.getY();
-        
-        // 检查点击是否在阳光范围内
-        if (!this.isCollected&&isPointInSun(mouseX, mouseY)) {
-            // 收集阳光
-            collectSun();
-        }
-        
-    }
 
-    @Override
-    public void mouseEntered(MouseEvent e) {
-        
-        
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e) {
-        
-        
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-        
-        
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        
-        
-    }
-
-    private boolean isPointInSun(int x, int y) {
+    public boolean isPointInSun(int x, int y) {
         // 假设阳光图像宽高为width和height
         int width = this.width+10;
         int height = this.height+10;
@@ -94,7 +58,7 @@ public class SunBullet extends Bullets implements MouseListener {
     }
 
     // 收集阳光的方法
-    private void collectSun() {
+    public void collectSun() {
         // 增加游戏面板中的阳光数量
         com.pvz.main.GamePanel.sunCount += 25; // 每个阳光增加25点阳光值
         

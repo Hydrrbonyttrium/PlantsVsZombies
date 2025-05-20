@@ -37,9 +37,9 @@ public  class SeedPackets {
         // Load the image for the seed packet
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         if(enabled&&!isSelected) {
-            image = toolkit.getImage(getClass().getClassLoader().getResource("resourse/images/seedPacket/"+getClass().getSimpleName()+".png"));
+            image = toolkit.getImage(getClass().getClassLoader().getResource("resource/images/seedPacket/"+getClass().getSimpleName()+".png"));
         } else {
-            image = toolkit.getImage(getClass().getClassLoader().getResource("resourse/images/seedPacket/"+getClass().getSimpleName()+"_disabled.png"));
+            image = toolkit.getImage(getClass().getClassLoader().getResource("resource/images/seedPacket/"+getClass().getSimpleName()+"_disabled.png"));
         }
     }
 
@@ -51,7 +51,7 @@ public  class SeedPackets {
     public Image getPlantImage() {
         // 默认实现，子类可以覆盖
         Toolkit toolkit = Toolkit.getDefaultToolkit();
-        return toolkit.getImage(getClass().getClassLoader().getResource("resourse/images/plants/"+name+"/"+name+"0.png"));
+        return toolkit.getImage(getClass().getClassLoader().getResource("resource/images/plants/"+name+"/"+name+"0.png"));
     }
     
     public void setPlant(Plants plant) {
@@ -98,9 +98,9 @@ public  class SeedPackets {
             isSelected = !isSelected;
             // Update the image based on the selection state
             if (isSelected) {
-                image = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resourse/images/seedPacket/"+getClass().getSimpleName()+".png"));
+                image = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resource/images/seedPacket/"+getClass().getSimpleName()+".png"));
             } else {
-                image = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resourse/images/seedPacket/"+getClass().getSimpleName()+"_disabled.png"));
+                image = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resource/images/seedPacket/"+getClass().getSimpleName()+"_disabled.png"));
             }
         }
     }
@@ -108,10 +108,10 @@ public  class SeedPackets {
     public void checkEnabled() {
         if(this.cost<=GamePanel.sunCount) {
             enabled = true; // Enable the seed packet if the cost is less than or equal to the sun count
-            image = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resourse/images/seedPacket/"+getClass().getSimpleName()+".png"));
+            image = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resource/images/seedPacket/"+getClass().getSimpleName()+".png"));
         } else {
             enabled = false; // Disable the seed packet if the cost is greater than the sun count
-            image = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resourse/images/seedPacket/"+getClass().getSimpleName()+"_disabled.png"));
+            image = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resource/images/seedPacket/"+getClass().getSimpleName()+"_disabled.png"));
         }
 
     }

@@ -10,9 +10,9 @@ public class BackGround {
     public BackGround(){
         
         Toolkit toolkit = Toolkit.getDefaultToolkit();
-        images[0] = toolkit.getImage(getClass().getClassLoader().getResource("resourse/images/background/start.jpg"));
-        images[1] = toolkit.getImage(getClass().getClassLoader().getResource("resourse/images/background/running.jpg"));
-        images[2] = toolkit.getImage(getClass().getClassLoader().getResource("resourse/images/background/gameover.jpg"));
+        images[0] = toolkit.getImage(getClass().getClassLoader().getResource("resource/images/background/start.jpg"));
+        images[1] = toolkit.getImage(getClass().getClassLoader().getResource("resource/images/background/running.jpg"));
+        images[2] = toolkit.getImage(getClass().getClassLoader().getResource("resource/images/background/gameover.jpg"));
 
         
 

@@ -149,11 +149,11 @@ public abstract class Zombies {
   
         for (int i = 0; i < moveImage.length; i++) {
             
-            moveImage[i] = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resourse/images/zombies/"+getClass().getSimpleName()+i+".png"));
+            moveImage[i] = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resource/images/zombies/"+getClass().getSimpleName()+i+".png"));
             
         }
         for (int i = 0; i < attackImage.length; i++) {
-            attackImage[i] = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resourse/images/zombies/"+getClass().getSimpleName()+"Attack"+i+".png"));
+            attackImage[i] = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resource/images/zombies/"+getClass().getSimpleName()+"Attack"+i+".png"));
         }
     }
 

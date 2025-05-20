@@ -72,7 +72,7 @@ public abstract class Plants {
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         animationImage = new Image[animationImageCount]; // Assuming there are 3 images for the plant
         for (int i = 0; i < animationImage.length; i++) {
-            animationImage[i] = toolkit.getImage(getClass().getClassLoader().getResource("resourse/images/plants/" + getClass().getSimpleName() +"/"+getClass().getSimpleName()+ i + ".png"));
+            animationImage[i] = toolkit.getImage(getClass().getClassLoader().getResource("resource/images/plants/" + getClass().getSimpleName() +"/"+getClass().getSimpleName()+ i + ".png"));
         }
         image = animationImage[0]; // Set the initial image
     }

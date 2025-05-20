@@ -18,7 +18,7 @@ public abstract class Bullets {
     public String path;
 
     public Bullets(float x, float y,int row) {
-        loadImage("resourse/images/Bullets/"+getClass().getSimpleName()+"0.png");
+        loadImage("resource/images/Bullets/"+getClass().getSimpleName()+"0.png");
         this.x = x;
         this.y = y;
         this.width = image.getWidth(null);

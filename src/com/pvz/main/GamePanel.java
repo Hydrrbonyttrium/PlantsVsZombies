@@ -20,6 +20,7 @@ import com.pvz.bullets.Bullets;
 import com.pvz.bullets.SunBullet;
 import com.pvz.plants.Plants;
 import com.pvz.plants.SunFlower;
+import com.pvz.seedpacket.SeedPackets;
 import com.pvz.ui.BackGround;
 import com.pvz.ui.Cube;
 import com.pvz.ui.SeedBank;
@@ -98,6 +99,9 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 	public Font origingalFont = null;
 	public Color origingalColor = null;
+
+	public GameTimer gameTimer;
+	public long finalTime;
 
 
 	public GamePanel(JFrame frame) {
@@ -206,95 +210,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	@Override
 	public void mouseClicked(MouseEvent e) {
 
-		// 获得鼠标的坐标
-		int Mx = e.getX();
-		int My = e.getY();
-
-		System.out.println(Mx+" "+My);
-		//如果点击开始游戏，将游戏状态改为运行
-		if(state==START) {
-			int x1 = 415;
-			int x2 = 680;
-			int y1 = 187;
-			int y2 = 275;
-			if(Mx>=x1&&Mx<=x2&&My>=y1&&My<=y2) {
-				state = RUNNING;
-			}
-		}
-		if(state==RUNNING) {
-			// 点击种子槽
-			if(Mx>=seedBank.x&&Mx<=seedBank.x+SeedBank.width&&My>=seedBank.y&&My<=seedBank.y+SeedBank.height) {
-				// 点击种子槽的植物
-				for(int i=0;i<seedBank.seedPackets.length;i++) {
-					if(seedBank.seedPackets[i] != null && seedBank.seedPackets[i].contains(Mx, My)) {
-						if(seedBank.seedPackets[i].isEnabled()) {
-							// 选中种子包
-							isSelected = true;
-							seedBank.seedPackets[i].handleMouseClick(Mx, My);
-							System.out.println("选中种子包"+i);
-
-							// 如果种子包被选中，准备种植
-							if(seedBank.seedPackets[i].isSelected()) {
-								isPlanting = true;
-								plantingImage = seedBank.seedPackets[i].getPlantImage();
-								currentPlant = seedBank.seedPackets[i].getPlant();
-								return;
-								
-							} else {
-								isPlanting = false;
-								plantingImage = null;
-							}
-
-							// 取消其他种子包的选中状态
-							for(int j=0;j<seedBank.seedPackets.length;j++) {
-								if(j!=i && seedBank.seedPackets[j] != null) {
-									seedBank.seedPackets[j].setSelected(false);
-								}
-							}
-						} else {
-							// 如果种子包不可用，取消选中状态
-							seedBank.seedPackets[i].setSelected(false);
-						}
-						
-					}
-				}
-			}
-			if(isPlanting&&plantingImage!=null) {
-				// 计算植物的坐标
-				// int plantX = Mx - plantingImage.getWidth(null) / 2;
-				// int plantY = My - plantingImage.getHeight(null) / 2;
-
-				// 检查植物是否可以放置在当前坐标
-				Cube nearestCube = getNearestCube(Mx, My);
-
-				if(nearestCube != null && nearestCube.getPlant() == null) {
-
-					nearestCube.setPlant(currentPlant);
-					nearestCube.getPlant().isalive = true;
-					nearestCube.getPlant().setX(nearestCube.getX());
-					nearestCube.getPlant().setY(nearestCube.getY());
-					// cubes[row][column].setPlant(currentPlant);
-					// cubes[row][column].getPlant().isalive = true;
-					// cubes[row][column].getPlant().setX(cubes[row][column].getX());
-					// cubes[row][column].getPlant().setY(cubes[row][column].getY());
-					// 减去阳光
-					sunCount -= seedBank.seedPackets[0].getCost();
-					isPlanting = false;
-					plantingImage = null;
-					currentPlant = null;
-					// 取消选中状态
-					for(int j=0;j<seedBank.seedPackets.length;j++) {
-						if(seedBank.seedPackets[j] != null) {
-							seedBank.seedPackets[j].setSelected(false);
-						}
-				}
-					System.out.println("放置植物成功");
-				} else {
-					System.out.println("该格子已经有植物了"+nearestCube.getX()+" "+nearestCube.getY()+" "+nearestCube.getRow()+" "+nearestCube.getColumn());	
-					
-				}
-		}
-		}
+		
 	}
 
 	@Override
@@ -307,6 +223,136 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 	@Override
 	public void mousePressed(MouseEvent e) {
+		// 获得鼠标的坐标
+		int Mx = e.getX();
+		int My = e.getY();
+	
+		System.out.println("Mouse Released at: " + Mx + " " + My); // 用于调试
+	
+		//如果点击开始游戏，将游戏状态改为运行
+		if(state == START) {
+			int x1 = 415;
+			int x2 = 680;
+			int y1 = 187;
+			int y2 = 275;
+			if(Mx >= x1 && Mx <= x2 && My >= y1 && My <= y2) {
+				state = RUNNING;
+				gameTimer = new GameTimer(); // 假设 GameTimer 是你实现的计时器类
+			}
+			return;
+		}
+	
+		if(state == RUNNING) {
+			// 1. 处理阳光收集的点击 (详见步骤2)
+			Iterator<SunBullet> sunIterator = sun.iterator();
+			while (sunIterator.hasNext()) {
+				SunBullet sunBullet = sunIterator.next();
+				// 假设 SunBullet 有一个方法可以检查点击是否在它内部
+				// 并且有方法来处理收集逻辑
+				if (!sunBullet.isCollected() && sunBullet.isPointInSun(Mx, My)) { 
+					sunBullet.collectSun(); // 标记为已收集，并增加阳光计数
+					// sunIterator.remove(); // 立即移除或标记后在 drawBullets 中移除
+					// this.removeMouseListener(sunBullet); // 这行也不再需要，因为 SunBullet 不再是监听器
+					sunCount += 25; // 假设每个阳光值25
+					System.out.println("Sun collected. Total sun: " + sunCount);
+					break; // 通常一次点击只收集一个阳光
+				}
+			}
+	
+			// 2. 处理点击种子槽的逻辑
+			if(Mx >= seedBank.x && Mx <= seedBank.x + SeedBank.width && My >= seedBank.y && My <= seedBank.y + SeedBank.height) {
+				boolean packetClickedInBank = false;
+				for (int i = 0; i < seedBank.seedPackets.length; i++) {
+					if (seedBank.seedPackets[i] != null && seedBank.seedPackets[i].contains(Mx, My)) {
+						seedBank.handlePacketClick(i); // 调用 SeedBank 的方法来处理点击和状态更新
+						packetClickedInBank = true;
+						break; 
+					}
+				}
+
+				// 更新 GamePanel 的种植状态基于 SeedBank 的选中状态
+				SeedPackets currentSelectedPacket = seedBank.getSelectedSeedPacket();
+				if (currentSelectedPacket != null && currentSelectedPacket.isSelected()) {
+					isPlanting = true;
+					plantingImage = currentSelectedPacket.getPlantImage();
+					// 确保 currentPlant 是一个可以种植的实例，而不是原型。
+					// 如果 getPlant() 返回原型，你可能需要 currentSelectedPacket.getPlant().createPlant() 或类似方法。
+					currentPlant = currentSelectedPacket.getPlant(); 
+					System.out.println("Selected seed packet: " + seedBank.selectedPacketIndex);
+				} else {
+					isPlanting = false;
+					plantingImage = null;
+					currentPlant = null;
+					if (packetClickedInBank) { // 如果是点击了某个包导致取消选中
+						System.out.println("Deselected seed packet or packet not available.");
+					}
+				}
+			} 
+	
+			else if (isPlanting && plantingImage != null && currentPlant != null) { 
+				// 确保 currentPlant 也被正确设置
+				Cube nearestCube = getNearestCube(Mx, My);
+				if (nearestCube != null && nearestCube.getPlant() == null) {
+					int cost = seedBank.getSelectedSeedPacketCost(); // 获取成本
+					
+					// 检查成本是否有效（不是Integer.MAX_VALUE）
+					if (cost == Integer.MAX_VALUE) {
+						System.err.println("Cannot plant: Invalid cost for selected seed packet.");
+						// 重置种植状态，因为无法获取成本
+						isPlanting = false;
+						plantingImage = null;
+						currentPlant = null;
+						seedBank.deselectCurrentPacket(); // 确保 SeedBank 也取消选中
+						return;
+					}
+
+					if (sunCount >= cost) {
+						// 假设 Plants 类有一个 createPlant() 方法来创建新实例，避免复用原型
+						Plants plantToPlace = currentPlant; 
+						nearestCube.setPlant(plantToPlace);
+						plantToPlace.isalive = true;
+						plantToPlace.setX(nearestCube.getX());
+						plantToPlace.setY(nearestCube.getY());
+						
+						sunCount -= cost;
+						
+						// 种植成功后，启动冷却并重置状态
+						SeedPackets plantedPacket = seedBank.getSelectedSeedPacket();
+						if (plantedPacket != null) {
+							// plantedPacket.startCooldown(); // 假设 SeedPackets 有 startCooldown 方法
+						}
+						seedBank.deselectCurrentPacket(); // 取消 SeedBank 中的选中状态
+						
+						isPlanting = false;
+						plantingImage = null;
+						currentPlant = null;
+						
+						System.out.println("Plant placed successfully.");
+					} else {
+						System.out.println("Not enough sun (" + sunCount + "/" + cost + ") to plant!");
+						// 阳光不足，可以选择是否取消种植状态
+						// isPlanting = false;
+						// plantingImage = null;
+						// currentPlant = null;
+						// seedBank.deselectCurrentPacket();
+					}
+				} else {
+					System.out.println("Cannot plant here: Cell is occupied or invalid.");	
+					// 点击无效种植区域，取消种植状态
+					isPlanting = false;
+					plantingImage = null;
+					currentPlant = null;
+					seedBank.deselectCurrentPacket(); // 确保 SeedBank 也取消选中
+				}
+			} else if (isPlanting && (plantingImage == null || currentPlant == null)) {
+				// 如果 isPlanting 为 true，但支持种植的变量未设置，说明状态不一致，进行重置
+				System.err.println("Planting state inconsistency. Resetting.");
+				isPlanting = false;
+				plantingImage = null;
+				currentPlant = null;
+				seedBank.deselectCurrentPacket();
+			}
+		}
 	}
 
 	@Override
@@ -375,7 +421,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 						{
 							SunBullet sunBullet = (SunBullet)cube.getPlant().attack();
 							sun.add(sunBullet);
-							this.addMouseListener(sunBullet);
+
 
 						}
 						else{
@@ -504,11 +550,11 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 			SunBullet sunBullet = iterator.next();
 			if (sunBullet.isCollected()) { // 检查阳光是否已被收集
 				iterator.remove(); // 从 sun 列表中移除
-				this.removeMouseListener(sunBullet); // 从 GamePanel 的鼠标监听器中移除此阳光实例
+
 				sunBullet.dispose(); 
 			} else if (sunBullet.ifDisapper) { // 检查阳光是否因超时而消失
 				iterator.remove(); // 从 sun 列表中移除
-				this.removeMouseListener(sunBullet); // 从 GamePanel 的鼠标监听器中移除此阳光实例
+
 				sunBullet.dispose();
 			} else {
 				sunBullet.draw(g); // 如果阳光既未被收集也未超时消失，则绘制它
@@ -669,6 +715,9 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		if (zombieSpawnTimer != null) {
 			zombieSpawnTimer.cancel();
 			zombieSpawnTimer = null;
+			gameTimer.stopGameTimer();
+			finalTime = gameTimer.getGameTime();
+			System.out.println("Final Time: " + finalTime);
 		}
 		
 		// 停止所有植物和僵尸的动画
