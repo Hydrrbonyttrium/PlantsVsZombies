@@ -5,6 +5,8 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.Color;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -17,11 +19,15 @@ import javax.swing.JPanel;
 import com.pvz.bullets.Bullets;
 import com.pvz.bullets.SunBullet;
 import com.pvz.plants.Plants;
+import com.pvz.plants.SunFlower;
 import com.pvz.ui.BackGround;
 import com.pvz.ui.Cube;
 import com.pvz.ui.SeedBank;
 import com.pvz.zombies.FlageZombie;
 import com.pvz.zombies.Zombies;
+
+// import javafx.scene.paint.Color;
+// import javafx.scene.text.Font;
 
 
 
@@ -38,6 +44,9 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	public static final int RUNNING =1;
 	public static final int GAME_OVER =2;
 
+
+	
+
 	public static int width = 800;
 	public static int height = 533;
 
@@ -51,6 +60,10 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	//数据
 	public static int sunCount = 5000;
 	public int sunCountMax = 9999;
+
+	private int countdownSeconds;
+	private boolean isCountingDown = true;
+	private Timer countdownTimer;
 
 	private JFrame frame;
 
@@ -68,10 +81,24 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 	public static List<List<Bullets>> bullets = new ArrayList<List<Bullets>>();
 	public static List<List<Zombies>> zombies = new ArrayList<List<Zombies>>();
+	public static List<SunBullet> sun = new ArrayList<SunBullet>();
 
 
 	private Timer zombieSpawnTimer;
 	private final int ZOMBIE_SPAWN_INTERVAL = 5000; // 5 seconds
+
+
+		// 添加难度相关常量
+	public static final int EASY = 0;
+	public static final int NORMAL = 1;
+	public static final int HARD = 2;
+
+	// 添加当前难度变量
+	private int difficulty = NORMAL;
+
+	public Font origingalFont = null;
+	public Color origingalColor = null;
+
 
 	public GamePanel(JFrame frame) {
 		
@@ -96,7 +123,11 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		this.addMouseMotionListener(this);
 		this.setFocusable(true);
 
+		
+		initCountdownTimer();
 		initSpawnZombieTimer();
+
+		
 
 		Thread t = new Thread(this);
 		t.start();
@@ -107,11 +138,16 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	public void paint(Graphics g) {
     
 		super.paint(g);
+
+		origingalFont = g.getFont();
+		origingalColor = g.getColor();
+
 		// 画背景
 		drawBackGround(g);
 
 		if(state==RUNNING) {
-			
+			//画倒计时
+			drawCountDown(g);
 			//画卡槽
 			drawSeedBank(g);
 			// 画格子中的植物
@@ -139,6 +175,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 				updateZombies(); // 更新僵尸位置
 				
 				plantAttack(); // 攻击子弹
+
 
 				checkBulletZombieCollisions(); // 检查子弹和僵尸的碰撞
 
@@ -168,7 +205,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		// TODO Auto-generated method stub
+
 		// 获得鼠标的坐标
 		int Mx = e.getX();
 		int My = e.getY();
@@ -290,6 +327,22 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 	}
 
+
+	private void initCountdownTimer() {
+		countdownTimer = new Timer();
+		countdownTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				if (countdownSeconds > 0) {
+					countdownSeconds--;
+				} else {
+					isCountingDown = false;
+					countdownTimer.cancel();
+				}
+			}
+		}, 0, 1000); // 每秒更新一次
+	}
+	
 	//输入坐标，返回距离最近的cube
 	public Cube getNearestCube(int x, int y) {
 		Cube nearestCube = null;
@@ -318,12 +371,33 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 					int row = cube.getRow();
 					// 检查植物是否可以攻击
 					if(plant.canAttack(row)){
+						if(plant.getClass().getSimpleName().equals("SunFlower"))
+						{
+							SunBullet sunBullet = (SunBullet)cube.getPlant().attack();
+							sun.add(sunBullet);
+							this.addMouseListener(sunBullet);
 
-						bullets.get(row).add(cube.getPlant().attack());
+						}
+						else{
+							bullets.get(row).add(cube.getPlant().attack());
+						}
 						plant.setAttackCooldown(); // 设置攻击冷却
 					}
 				}
 			}
+		}
+	}
+
+	private int getInitialDelayByDifficulty() {
+		switch (difficulty) {
+			case EASY:
+				return 30000; // 简单模式30秒
+			case NORMAL:
+				return 20000; // 普通模式20秒
+			case HARD:
+				return 10000; // 困难模式10秒
+			default:
+				return 20000;
 		}
 	}
 
@@ -359,12 +433,15 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 	public void initSpawnZombieTimer() {
 		zombieSpawnTimer = new Timer();
+		int initialDelay = getInitialDelayByDifficulty();
+		countdownSeconds = initialDelay / 1000;
+		
 		zombieSpawnTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
 				spawnZombie();
 			}
-		}, 0, ZOMBIE_SPAWN_INTERVAL);
+		}, initialDelay, ZOMBIE_SPAWN_INTERVAL);
 	}
 
 	private void checkBulletZombieCollisions() {
@@ -417,9 +494,29 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 				bullet.draw(g);
 				if (bullet.isOutOfBounds(width, height)) {
 					iterator.remove();
+					bullet.dispose();
 				}
 			}
 		}
+
+		Iterator<SunBullet> iterator = sun.iterator();
+		while (iterator.hasNext()){
+			SunBullet sunBullet = iterator.next();
+			if (sunBullet.isCollected()) { // 检查阳光是否已被收集
+				iterator.remove(); // 从 sun 列表中移除
+				this.removeMouseListener(sunBullet); // 从 GamePanel 的鼠标监听器中移除此阳光实例
+				sunBullet.dispose(); 
+			} else if (sunBullet.ifDisapper) { // 检查阳光是否因超时而消失
+				iterator.remove(); // 从 sun 列表中移除
+				this.removeMouseListener(sunBullet); // 从 GamePanel 的鼠标监听器中移除此阳光实例
+				sunBullet.dispose();
+			} else {
+				sunBullet.draw(g); // 如果阳光既未被收集也未超时消失，则绘制它
+			}
+			
+			
+		}
+
 			
 	}
 
@@ -439,6 +536,10 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	}
 
 	public void drawSeedBank(Graphics g) {
+		
+		g.setColor(origingalColor);
+		g.setFont(origingalFont);
+		
 		g.drawImage(seedBank.getImage(), seedBank.x, seedBank.y, SeedBank.width, SeedBank.height, null);
 
 		g.drawString(""+sunCount, 50, 100);
@@ -449,6 +550,15 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	public void drawBackGround(Graphics g) {
 		g.drawImage(backGround.getImage(state), 0, 0, width, height, null);
 	}
+
+	public void drawCountDown(Graphics g) {
+	    if (state == RUNNING && isCountingDown) {
+        g.setFont(new Font("Arial", Font.BOLD, 30));
+        g.setColor(Color.RED);
+        g.drawString("zombies are coming in: " + countdownSeconds + "s", width/2 - 150, 200);
+    }
+	}
+
 
 	public void setFramSize() {
 		width = backGround.getWidth(state);
@@ -536,6 +646,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 				}
 			}
 		}
+
 	}
 	
     public void checkGameOver() {

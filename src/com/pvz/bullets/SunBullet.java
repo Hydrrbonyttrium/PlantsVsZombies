@@ -3,15 +3,35 @@ import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Timer;
 public class SunBullet extends Bullets implements MouseListener {
+    private int SUN_DISAPPER_TIMER = 30000;
     private boolean isCollected;
+    public Timer sunTimer;
+    public boolean ifDisapper=false;
 
     public SunBullet(int x, int y, int row) {
         
         super(x, y,row);
+        System.out.println("生成阳光");
         this.speed = 0;
         this.damage = 0;
+        sunTimer = new Timer();
+        initsunTimer();
         
+    }
+
+    public void initsunTimer(){
+        
+        
+        sunTimer.schedule(new java.util.TimerTask() {
+            @Override
+            public void run() {
+                ifDisapper=true;
+                System.out.println("sun disapper");
+            }
+        }, SUN_DISAPPER_TIMER); // 5秒后执行
+
     }
     @Override
     public void loadImage(String path) {
@@ -33,7 +53,7 @@ public class SunBullet extends Bullets implements MouseListener {
         int mouseY = e.getY();
         
         // 检查点击是否在阳光范围内
-        if (isPointInSun(mouseX, mouseY)) {
+        if (!this.isCollected&&isPointInSun(mouseX, mouseY)) {
             // 收集阳光
             collectSun();
         }
@@ -66,8 +86,8 @@ public class SunBullet extends Bullets implements MouseListener {
 
     private boolean isPointInSun(int x, int y) {
         // 假设阳光图像宽高为width和height
-        int width = this.image.getWidth(null);
-        int height = this.image.getHeight(null);
+        int width = this.width+10;
+        int height = this.height+10;
         
         return x >= this.x && x <= this.x + width && 
                y >= this.y && y <= this.y + height;

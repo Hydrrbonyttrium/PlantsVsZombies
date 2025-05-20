@@ -24,7 +24,7 @@ public abstract class Plants {
     public Timer animationTimer; // Timer for the animation
     public int attackIndex = 0; // Index for the attack animation
     public int ANIMATION_INTERVAL = 150; // Animation interval in milliseconds
-    private Boolean canAttack = true; // Flag to indicate if the plant can attack
+    public Boolean canAttack = true; // Flag to indicate if the plant can attack
     public int damage = 0; // Damage dealt by the plant
     
     public Plants(int x, int y,int row,int column,int animationImageCount) {
