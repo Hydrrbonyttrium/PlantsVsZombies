@@ -8,6 +8,11 @@ import javax.swing.border.EmptyBorder;
 import java.awt.event.MouseAdapter;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class GameFrame extends JFrame  {
 
@@ -39,6 +44,23 @@ public class GameFrame extends JFrame  {
 	public GameFrame() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 611, 493);
+		
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		
+		JMenu menu = new JMenu("帮助");
+		menuBar.add(menu);
+		
+		JMenuItem menuItem = new JMenuItem("关于");
+		menuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				About dialog = new About();
+				dialog.setModal(true);
+				dialog.setLocationRelativeTo(GameFrame.this);
+				dialog.setVisible(true);
+			}
+		});
+		menu.add(menuItem);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -73,9 +95,4 @@ public class GameFrame extends JFrame  {
 		
 
 	}
-
-
-
-	
-
 }

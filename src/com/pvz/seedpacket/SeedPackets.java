@@ -4,6 +4,7 @@ package com.pvz.seedpacket;
 import java.awt.*;
 
 import com.pvz.main.GamePanel;
+import com.pvz.plants.PeaShooter;
 import com.pvz.plants.Plants;
 import com.pvz.plants.Repeater;
 import com.pvz.plants.SunFlower;
@@ -64,7 +65,9 @@ public  class SeedPackets {
             case "SeedPacketRepeater":
                 return new Repeater(x, y,0,0,5);
             case "SeedPacketSunFlower" :
-                return new SunFlower(x, y, 0,0);
+                return new SunFlower(x, y, 0,0,17);
+            case "SeedPacketPeaShooter":
+                return new PeaShooter(x, y,0,0,8);
             default:
                 return null; // Handle other cases or throw an exception
         }

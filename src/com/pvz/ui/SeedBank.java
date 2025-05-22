@@ -3,6 +3,7 @@ package com.pvz.ui;
 import java.awt.*;
 
 import com.pvz.main.GamePanel;
+import com.pvz.seedpacket.SeedPacketPeaShooter;
 import com.pvz.seedpacket.SeedPacketRepeater;
 import com.pvz.seedpacket.SeedPacketSunFlower;
 import com.pvz.seedpacket.SeedPackets;
@@ -22,8 +23,10 @@ public class SeedBank {
     public SeedBank(int x, int y) {
         this.x = x;
         this.y = y;
-        seedPackets[0] = new SeedPacketRepeater(100,5);
+    
+        seedPackets[0] = new SeedPacketPeaShooter(100,5);
         seedPackets[1] = new SeedPacketSunFlower(100+seedPackets[0].width,5);
+        seedPackets[2] = new SeedPacketRepeater(100+seedPackets[0].width*2,5);
     }
     public Image getImage() {
         return image;

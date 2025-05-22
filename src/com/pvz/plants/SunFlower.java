@@ -1,15 +1,16 @@
 package com.pvz.plants;
 
 import java.awt.Toolkit;
+import java.util.List;
 
 import com.pvz.bullets.Bullets;
 import com.pvz.bullets.PeaBullet;
 import com.pvz.bullets.SunBullet;
 
 public class SunFlower extends Plants  {
-    public SunFlower(int x, int y, int row, int column) {
-        super(x, y, row, column,17); // Call the superclass constructor with the given x and y coordinates
-        this.attackInterval = 30000; // Attack interval in milliseconds
+    public SunFlower(int x, int y, int row, int column, int animationImageCount) {
+        super(x, y, row, column,animationImageCount); // Call the superclass constructor with the given x and y coordinates
+        this.attackInterval = 20000; // Attack interval in milliseconds
         this.damage = 0; // Damage dealt by the Repeater
         this.health = 100; // Health of the Repeater
         setAttackCooldown();
@@ -17,7 +18,7 @@ public class SunFlower extends Plants  {
 
 
     @Override
-    public SunBullet attack() {
+    public SunBullet GenerateSun() {
        return new SunBullet(x, y-25,row);
     }
 
@@ -29,6 +30,12 @@ public class SunFlower extends Plants  {
     @Override
     public void update() {
         
+    }
+
+
+    @Override
+    public List<Bullets> attack() {
+        return null; // SunFlower does not attack
     }
 
 

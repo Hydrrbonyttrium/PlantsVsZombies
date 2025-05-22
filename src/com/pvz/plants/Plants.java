@@ -5,6 +5,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.pvz.bullets.Bullets;
+import com.pvz.bullets.SunBullet;
 import com.pvz.main.GamePanel;
 import com.pvz.zombies.Zombies;
 
@@ -49,7 +50,9 @@ public abstract class Plants {
         drawHealthBar(g);
     } // Abstract method to draw the plant
     public abstract void update(); // Abstract method to update the plant's state
-    public abstract Bullets attack(); // Abstract method to perform the plant's attack
+    public abstract List<Bullets> attack(); // Abstract method to perform the plant's attack
+
+    public abstract SunBullet GenerateSun();
 
     public void initAnimationTimer() {
         animationTimer = new Timer();

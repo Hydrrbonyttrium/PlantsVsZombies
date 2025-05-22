@@ -13,13 +13,13 @@ import com.pvz.plants.Plants;
 
 public abstract class Zombies {
 
-    public  int ORIGINAL_SPEED;
-    public  int x;
-    public  int y;
+    public  double ORIGINAL_SPEED;
+    public  double x;
+    public  double y;
     public  int row;
     public  int column;
     public  int health;
-    public  int speed;
+    public  double speed;
     public  int damage;
     public  int attackInterval;
     public  int maxHealth;
@@ -36,16 +36,17 @@ public abstract class Zombies {
     public int attackIndex = 0;
     public static final int MOVE_ANIMATION_DELAY = 200;  // 移动动画间隔(毫秒)
     public static final int ATTACK_ANIMATION_DELAY = 100; // 攻击动画间隔(毫秒)
-    
+    public int moveImageCount;
+    public int attackImageCount;
 
-    public Zombies(int x, int y, int row) {
+    public Zombies(int x, int y, int row,int moveImageCount, int attackImageCount) {
         this.x = x;
         this.y = y-10;
         this.row = row;
         this.isAlive = true;
-        loadImage();
-        this.width = moveImage[0].getWidth(null);
-        this.height = moveImage[0].getHeight(null);
+        loadImage(moveImageCount, attackImageCount); // Load the images for the zombie
+        this.width = 166;
+        this.height = 144;
         initMoveAnimation(); // Initialize the move animation timer
         loadMoveAnimation(); // Load the move animation images
         
@@ -124,7 +125,7 @@ public abstract class Zombies {
     }
     
     public void draw(Graphics g){
-        g.drawImage(image, x, y, null);
+        g.drawImage(image, (int)x, (int)y, null);
         drawHealthBar(g); // Draw the health bar above the zombie
     }
     
@@ -142,18 +143,18 @@ public abstract class Zombies {
         isAlive = alive;
     }
 
-    public  void loadImage(){
+    public  void loadImage(int moveImageCount, int attackImageCount) {
         // Load the image for the zombie
-        moveImage = new Image[5];
-        attackImage = new Image[5];
+        moveImage = new Image[moveImageCount];
+        attackImage = new Image[attackImageCount];
   
         for (int i = 0; i < moveImage.length; i++) {
             
-            moveImage[i] = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resource/images/zombies/"+getClass().getSimpleName()+i+".png"));
+            moveImage[i] = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resource/images/zombies/"+getClass().getSimpleName()+"/"+getClass().getSimpleName()+i+".png"));
             
         }
         for (int i = 0; i < attackImage.length; i++) {
-            attackImage[i] = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resource/images/zombies/"+getClass().getSimpleName()+"Attack"+i+".png"));
+            attackImage[i] = Toolkit.getDefaultToolkit().getImage(getClass().getClassLoader().getResource("resource/images/zombies/"+getClass().getSimpleName()+"/"+getClass().getSimpleName()+"Attack"+i+".png"));
         }
     }
 
@@ -199,8 +200,8 @@ public abstract class Zombies {
         int barHeight = 5;
         
         // 计算血条位置
-        int barX = x+80;
-        int barY = y - 10;
+        int barX = (int)x+80;
+        int barY = (int)y - 10;
         
         // 绘制血条背景
         g.setColor(Color.GRAY);

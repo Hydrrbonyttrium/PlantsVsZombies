@@ -21,14 +21,16 @@ import com.pvz.bullets.SunBullet;
 import com.pvz.plants.Plants;
 import com.pvz.plants.SunFlower;
 import com.pvz.seedpacket.SeedPackets;
+import com.pvz.shovel.Shovel;
 import com.pvz.ui.BackGround;
 import com.pvz.ui.Cube;
 import com.pvz.ui.SeedBank;
+import com.pvz.zombies.BuckedtheadZombie;
+import com.pvz.zombies.ConeheadZombie;
 import com.pvz.zombies.FlageZombie;
 import com.pvz.zombies.Zombies;
 
-// import javafx.scene.paint.Color;
-// import javafx.scene.text.Font;
+
 
 
 
@@ -59,7 +61,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	public static SeedBank seedBank = new SeedBank(0,0);
 	
 	//数据
-	public static int sunCount = 5000;
+	public static int sunCount = 500;
 	public int sunCountMax = 9999;
 
 	private int countdownSeconds;
@@ -86,16 +88,17 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 
 	private Timer zombieSpawnTimer;
-	private final int ZOMBIE_SPAWN_INTERVAL = 5000; // 5 seconds
+	private final int ZOMBIE_SPAWN_INTERVAL = 20000; // 5 seconds
 
 
 		// 添加难度相关常量
+	public static final int TEST = -1;
 	public static final int EASY = 0;
 	public static final int NORMAL = 1;
 	public static final int HARD = 2;
 
 	// 添加当前难度变量
-	private int difficulty = NORMAL;
+	private int difficulty = TEST;
 
 	public Font origingalFont = null;
 	public Color origingalColor = null;
@@ -103,10 +106,14 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	public GameTimer gameTimer;
 	public long finalTime;
 
+	public Shovel shovel;
+
 
 	public GamePanel(JFrame frame) {
 		
 		this.frame = frame;
+
+		this.shovel = new Shovel();
 
 		for(int i=0;i<5;i++) {
 			for(int j=0;j<9;j++) {
@@ -154,6 +161,8 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 			drawCountDown(g);
 			//画卡槽
 			drawSeedBank(g);
+			// 画铲子
+			drawShovel(g);
 			// 画格子中的植物
 			drawCubes(g);
 			// 画选中后跟随鼠标的植物
@@ -168,6 +177,16 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 	
 	
+	private void drawShovel(Graphics g) {
+		g.drawImage(shovel.bankImage, shovel.bankx, shovel.banky, shovel.bankWidth, shovel.bankHeight, null);
+		if(shovel.isClicked) {
+			g.drawImage(shovel.shovelImage, currentMousex-shovel.shovelWidth/2, currentMousey-shovel.shovelHeight/2, shovel.shovelWidth, shovel.shovelHeight, null);
+		}
+		else{
+			g.drawImage(shovel.shovelImage, shovel.shovelx, shovel.shovely, shovel.shovelWidth, shovel.shovelHeight, null);
+		}
+	}
+
 	public void run() {
 		while(true) {
 			
@@ -243,16 +262,13 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		}
 	
 		if(state == RUNNING) {
-			// 1. 处理阳光收集的点击 (详见步骤2)
+			// 1. 处理阳光收集的点击
 			Iterator<SunBullet> sunIterator = sun.iterator();
 			while (sunIterator.hasNext()) {
 				SunBullet sunBullet = sunIterator.next();
-				// 假设 SunBullet 有一个方法可以检查点击是否在它内部
-				// 并且有方法来处理收集逻辑
+
 				if (!sunBullet.isCollected() && sunBullet.isPointInSun(Mx, My)) { 
 					sunBullet.collectSun(); // 标记为已收集，并增加阳光计数
-					// sunIterator.remove(); // 立即移除或标记后在 drawBullets 中移除
-					// this.removeMouseListener(sunBullet); // 这行也不再需要，因为 SunBullet 不再是监听器
 					sunCount += 25; // 假设每个阳光值25
 					System.out.println("Sun collected. Total sun: " + sunCount);
 					break; // 通常一次点击只收集一个阳光
@@ -330,11 +346,6 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 						System.out.println("Plant placed successfully.");
 					} else {
 						System.out.println("Not enough sun (" + sunCount + "/" + cost + ") to plant!");
-						// 阳光不足，可以选择是否取消种植状态
-						// isPlanting = false;
-						// plantingImage = null;
-						// currentPlant = null;
-						// seedBank.deselectCurrentPacket();
 					}
 				} else {
 					System.out.println("Cannot plant here: Cell is occupied or invalid.");	
@@ -352,6 +363,26 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 				currentPlant = null;
 				seedBank.deselectCurrentPacket();
 			}
+
+			// 3. 处理铲子点击
+			shovel.checkClicked(Mx, My);
+			if (shovel.isClicked) {
+				// 检查铲子是否点击在植物上
+				Cube nearestCube = getNearestCube(Mx, My);
+				if (nearestCube != null && nearestCube.getPlant() != null) {
+					Plants plantToRemove = nearestCube.getPlant();
+					if (plantToRemove != null && plantToRemove.isalive) {
+						// 移除植物
+						plantToRemove.isalive = false;
+						plantToRemove.dispose(); // 释放资源
+						nearestCube.setPlant(null); // 从格子中移除植物
+
+						System.out.println("Plant removed");
+					}
+				}
+			}
+
+			
 		}
 	}
 
@@ -419,13 +450,19 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 					if(plant.canAttack(row)){
 						if(plant.getClass().getSimpleName().equals("SunFlower"))
 						{
-							SunBullet sunBullet = (SunBullet)cube.getPlant().attack();
+							SunBullet sunBullet = (SunBullet)cube.getPlant().GenerateSun();
 							sun.add(sunBullet);
 
 
 						}
 						else{
-							bullets.get(row).add(cube.getPlant().attack());
+							List<Bullets> getBullet = cube.getPlant().attack();
+							Iterator <Bullets> iterator = getBullet.iterator();
+							while(iterator.hasNext()){
+								Bullets bullet = iterator.next();
+								bullets.get(row).add(bullet);
+							}
+
 						}
 						plant.setAttackCooldown(); // 设置攻击冷却
 					}
@@ -436,10 +473,12 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 	private int getInitialDelayByDifficulty() {
 		switch (difficulty) {
+			case TEST:
+				return 0; // 测试模式20秒
 			case EASY:
-				return 30000; // 简单模式30秒
+				return 60000; // 简单模式30秒
 			case NORMAL:
-				return 20000; // 普通模式20秒
+				return 30000; // 普通模式20秒
 			case HARD:
 				return 10000; // 困难模式10秒
 			default:
@@ -453,14 +492,13 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		int y = 200 + (row-1) * 130; // 根据行计算y坐标
 		
 		// 随机选择僵尸类型
-		int zombieType = (int)(Math.random() * 2); // 假设有3种僵尸类型
-		switch (zombieType) {
-			case 0:
-				zombies.get(row).add(new FlageZombie(x, y, row));
-				break;
-		
-			default:
-				break;
+		double randomValue = Math.random(); 
+		if (randomValue < 0.60) { // 60% 的概率生成 FlageZombie
+			zombies.get(row).add(new FlageZombie(x, y, row));
+		} else if (randomValue < 0.90) { // 30% 的概率生成 ConeheadZombie (0.60 <= randomValue < 0.90)
+			zombies.get(row).add(new ConeheadZombie(x, y, row));
+		} else { // 10% 的概率生成 BuckedtheadZombie (0.90 <= randomValue < 1.0)
+			zombies.get(row).add(new BuckedtheadZombie(x, y, row));
 		}
 	}
 
@@ -508,7 +546,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 					Zombies zombie = zombieIterator.next();
 					
 					// 简单的矩形碰撞检测
-					if (bullet.x + bullet.width > zombie.x && 
+					if (bullet.x + bullet.width > zombie.x+(zombie.width/2) && 
 						bullet.x < zombie.x + zombie.width) {
 						
 						// 子弹击中僵尸
@@ -646,7 +684,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 					// 检查僵尸是否可以攻击植物
 					if (plant != null && plant.isalive) {
 						// 简单的碰撞检测 - 僵尸到达植物位置
-						if (zombie.x <= plant.getX() + 5 && zombie.x + zombie.width >= plant.getX()) {
+						if (zombie.x+(zombie.width)/2 <= plant.getX() +1 && zombie.x + zombie.width >= plant.getX()) {
 
 							
 							zombie.canAttack = true;
