@@ -1,7 +1,6 @@
 package com.pvz.main;
 import java.awt.Graphics;
 import java.awt.Image;
-import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -14,12 +13,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import com.pvz.bullets.Bullets;
 import com.pvz.bullets.SunBullet;
+import com.pvz.db.Mysql;
 import com.pvz.plants.Plants;
-import com.pvz.plants.SunFlower;
 import com.pvz.seedpacket.SeedPackets;
 import com.pvz.shovel.Shovel;
 import com.pvz.ui.BackGround;
@@ -29,6 +29,8 @@ import com.pvz.zombies.BuckedtheadZombie;
 import com.pvz.zombies.ConeheadZombie;
 import com.pvz.zombies.FlageZombie;
 import com.pvz.zombies.Zombies;
+
+
 
 
 
@@ -61,7 +63,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	public static SeedBank seedBank = new SeedBank(0,0);
 	
 	//数据
-	public static int sunCount = 500;
+	public static int sunCount = 5000;
 	public int sunCountMax = 9999;
 
 	private int countdownSeconds;
@@ -98,15 +100,22 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	public static final int HARD = 2;
 
 	// 添加当前难度变量
-	private int difficulty = TEST;
+	private int difficulty;
 
 	public Font origingalFont = null;
 	public Color origingalColor = null;
 
 	public GameTimer gameTimer;
+	public long currentGameTime;; // 当前游戏时间
 	public long finalTime;
 
 	public Shovel shovel;
+
+	public Mysql mysql = new Mysql();
+
+	public int FlageZombieRate;
+	public int ConeheadZombieRate;
+	public int BuckedheadZombieRate;
 
 
 	public GamePanel(JFrame frame) {
@@ -114,6 +123,10 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		this.frame = frame;
 
 		this.shovel = new Shovel();
+
+		mysql.connect();
+
+		this.difficulty = EASY; // 初始难度为简单
 
 		for(int i=0;i<5;i++) {
 			for(int j=0;j<9;j++) {
@@ -191,9 +204,10 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		while(true) {
 			
 			
-			setFramSize();
+			// setFramSize();
 	
 			if (state == RUNNING) {
+
 
 				updateZombies(); // 更新僵尸位置
 				
@@ -221,9 +235,6 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		}
 	}
 	
-	
-	
-
 
 
 	@Override
@@ -257,6 +268,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 			if(Mx >= x1 && Mx <= x2 && My >= y1 && My <= y2) {
 				state = RUNNING;
 				gameTimer = new GameTimer(); // 假设 GameTimer 是你实现的计时器类
+				setFramSize();
 			}
 			return;
 		}
@@ -291,8 +303,6 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 				if (currentSelectedPacket != null && currentSelectedPacket.isSelected()) {
 					isPlanting = true;
 					plantingImage = currentSelectedPacket.getPlantImage();
-					// 确保 currentPlant 是一个可以种植的实例，而不是原型。
-					// 如果 getPlant() 返回原型，你可能需要 currentSelectedPacket.getPlant().createPlant() 或类似方法。
 					currentPlant = currentSelectedPacket.getPlant(); 
 					System.out.println("Selected seed packet: " + seedBank.selectedPacketIndex);
 				} else {
@@ -406,15 +416,27 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 
 	private void initCountdownTimer() {
-		countdownTimer = new Timer();
+		// countdownSeconds 应该已经被 initSpawnZombieTimer 根据当前难度设置了
+		if (this.countdownSeconds > 0) {
+			this.isCountingDown = true;
+		} else {
+			this.isCountingDown = false; 
+		}
+	
+		countdownTimer = new Timer(); // 创建新的 Timer 实例
 		countdownTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (countdownSeconds > 0) {
-					countdownSeconds--;
-				} else {
-					isCountingDown = false;
-					countdownTimer.cancel();
+				// 只在游戏运行且正在倒计时状态下执行
+				if (state == RUNNING && isCountingDown) { 
+					if (countdownSeconds > 0) {
+						countdownSeconds--;
+					}
+					// 当倒计时减到0或初始就为0时，更新状态
+					if (countdownSeconds <= 0) { 
+						isCountingDown = false;
+						// 此处不 cancel timer，让外部（如 setDifficulty 或 stopGame）管理 Timer 的生命周期
+					}
 				}
 			}
 		}, 0, 1000); // 每秒更新一次
@@ -491,16 +513,50 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		int x = 1000; // 屏幕右侧
 		int y = 200 + (row-1) * 130; // 根据行计算y坐标
 		
+		switch (difficulty) {
+			case TEST:
+				FlageZombieRate = 100;
+				ConeheadZombieRate = 0;
+				BuckedheadZombieRate = 0;
+				break;
+			case EASY:
+				FlageZombieRate = 60;
+				ConeheadZombieRate = 30;
+				BuckedheadZombieRate = 10;
+				break;
+			case NORMAL:
+				FlageZombieRate = 30;
+				ConeheadZombieRate = 45;
+				BuckedheadZombieRate = 25;
+				break;
+			case HARD:
+				FlageZombieRate = 20;
+				ConeheadZombieRate = 50;
+				BuckedheadZombieRate = 30;
+				break;
+			default:
+				FlageZombieRate = 60;
+				ConeheadZombieRate = 30;
+				BuckedheadZombieRate = 10;
+		}
+			
+
 		// 随机选择僵尸类型
 		double randomValue = Math.random(); 
-		if (randomValue < 0.60) { // 60% 的概率生成 FlageZombie
-			zombies.get(row).add(new FlageZombie(x, y, row));
-		} else if (randomValue < 0.90) { // 30% 的概率生成 ConeheadZombie (0.60 <= randomValue < 0.90)
-			zombies.get(row).add(new ConeheadZombie(x, y, row));
-		} else { // 10% 的概率生成 BuckedtheadZombie (0.90 <= randomValue < 1.0)
-			zombies.get(row).add(new BuckedtheadZombie(x, y, row));
+		
+		Zombies zombie = null;
+		if (randomValue > FlageZombieRate / 100.0) {
+			zombie = new FlageZombie(x, y, row);
+		} else if (randomValue > (FlageZombieRate + ConeheadZombieRate) / 100.0) {
+			zombie = new ConeheadZombie(x, y, row);
+		} else {
+			zombie = new BuckedtheadZombie(x, y, row);
 		}
+
+		// 将僵尸添加到对应的行
+		zombies.get(row).add(zombie);
 	}
+
 
 	public void drawZombies(Graphics g) {
 		for (List<Zombies> zombie_row : zombies) {
@@ -516,17 +572,23 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	}
 
 	public void initSpawnZombieTimer() {
-		zombieSpawnTimer = new Timer();
+		zombieSpawnTimer = new Timer(); // 创建新的 Timer 实例
 		int initialDelay = getInitialDelayByDifficulty();
-		countdownSeconds = initialDelay / 1000;
+		countdownSeconds = initialDelay / 1000; // 设置用于倒计时的秒数
 		
 		zombieSpawnTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				spawnZombie();
+				// 只在游戏运行状态下生成僵尸
+				if (state == RUNNING) { 
+					spawnZombie();
+				}
 			}
 		}, initialDelay, ZOMBIE_SPAWN_INTERVAL);
+
 	}
+
+	
 
 	private void checkBulletZombieCollisions() {
 		// 遍历每一行
@@ -741,6 +803,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
                 if (zombie.x < 50) {
                     state = GAME_OVER;
                     stopGame();
+					showGameOverDialog();
                     return;
                 }
             }
@@ -748,14 +811,46 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
     }
 
 
+	private void showGameOverDialog() {
+		//要求用户输入名字
+		String name = JOptionPane.showInputDialog(this, "Enter your name:");
+		String difficultyString = "";
+		switch (difficulty) {
+			case TEST:
+				difficultyString = "TEST";
+				break;
+			case EASY:
+				difficultyString = "EASY";
+				break;
+			case NORMAL:
+				difficultyString = "NORMAL";
+				break;
+			case HARD:
+				difficultyString = "HARD";
+				break;
+			default:
+				difficultyString = "UNKNOWN";
+		}
+		//将名字和最终时间保存到mysql数据库中
+		mysql.saveScore(name,difficultyString,(int)finalTime/1000);
+		
+		JOptionPane.showMessageDialog(this, "Game Over! Your final time is: " + finalTime /1000+ " seconds.", "Game Over", JOptionPane.INFORMATION_MESSAGE);
+	}
+
 	private void stopGame() {
 		// 停止所有计时器
+		if (countdownTimer != null) { // 新增对 countdownTimer 的处理
+			countdownTimer.cancel();
+			countdownTimer = null;
+		}
 		if (zombieSpawnTimer != null) {
 			zombieSpawnTimer.cancel();
 			zombieSpawnTimer = null;
+		}
+		if (gameTimer != null) { // 确保 gameTimer 存在再调用
 			gameTimer.stopGameTimer();
 			finalTime = gameTimer.getGameTime();
-			System.out.println("Final Time: " + finalTime);
+			System.out.println("Final Time: " + finalTime/1000);
 		}
 		
 		// 停止所有植物和僵尸的动画
@@ -774,7 +869,55 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 				zombie.dispose(); // 假设僵尸类有dispose方法
 			}
 		}
+
 	}
+	public Mysql getMysqlInstance() {
+		return this.mysql;
+	}
+
+	public int getDifficulty() {
+		return difficulty;
+	}
+
+    public void setDifficulty(int selectedDifficulty) {
+        this.difficulty = selectedDifficulty;
+		System.out.println("Difficulty set to: " + this.difficulty);
+
+		// 取消现有的计时器
+		if (countdownTimer != null) {
+			countdownTimer.cancel();
+			countdownTimer = null; 
+		}
+		if (zombieSpawnTimer != null) {
+			zombieSpawnTimer.cancel();
+			zombieSpawnTimer = null;
+		}
+		
+		// 根据新难度重新初始化计时器
+		// initSpawnZombieTimer 会根据新的 difficulty 计算 initialDelay 并设置 countdownSeconds
+		initSpawnZombieTimer(); 
+		// initCountdownTimer 会使用新的 countdownSeconds 进行倒计时
+		initCountdownTimer();   
+		
+
+		switch (selectedDifficulty) {
+			case TEST:
+				sunCount = 9999;
+				break;
+			case EASY:
+				sunCount = 200;
+				break;
+			case NORMAL:
+				sunCount = 100;
+				break;
+			case HARD:
+				sunCount = 50;
+				break;
+			default:
+				sunCount = 100;
+				break;
+		}
+    }
 }
 
 

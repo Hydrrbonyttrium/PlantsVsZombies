@@ -1,6 +1,4 @@
 package com.pvz.seedpacket;
-import java.awt.*;
-
 import com.pvz.plants.Repeater;
 
 public class SeedPacketRepeater extends SeedPackets {

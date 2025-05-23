@@ -7,7 +7,6 @@ import java.util.TimerTask;
 import com.pvz.bullets.Bullets;
 import com.pvz.bullets.SunBullet;
 import com.pvz.main.GamePanel;
-import com.pvz.zombies.Zombies;
 
 
 public abstract class Plants {
@@ -15,7 +14,8 @@ public abstract class Plants {
     public int width, height;
     public int row,column; // Row and column of the plant
     public int speed = 0; // Speed of the plant
-    public int health = 0; // Health of the plant
+    public int health; // Health of the plant
+    public int maxHealth;
     public Image image;
     public Image[] animationImage;
     public int animationImageCount;
@@ -25,7 +25,7 @@ public abstract class Plants {
     public Timer animationTimer; // Timer for the animation
     public int attackIndex = 0; // Index for the attack animation
     public int ANIMATION_INTERVAL = 150; // Animation interval in milliseconds
-    public Boolean canAttack = true; // Flag to indicate if the plant can attack
+    public boolean canAttack = true; // Flag to indicate if the plant can attack
     public int damage = 0; // Damage dealt by the plant
     
     public Plants(int x, int y,int row,int column,int animationImageCount) {
@@ -34,7 +34,8 @@ public abstract class Plants {
         this.x = x;
         this.y = y;
         this.animationImageCount = animationImageCount; // Number of images for the plant
-        
+        this.health = 100; // Initial health of the plant
+        this.maxHealth = health; // Maximum health of the plant
         loadImage(); // Load the plant images
         this.width = image.getWidth(null); // Set the width of the plant
         this.height = image.getHeight(null); // Set the height of the plant
@@ -136,7 +137,7 @@ public abstract class Plants {
         if (isalive) {
             int healthBarWidth = 50;  // 血条宽度
             int healthBarHeight = 5;  // 血条高度
-            int maxHealth = 100;      // 假设最大生命值为100，根据实际情况调整
+
             
             // 计算当前血量占比
             float healthRatio = (float) health / maxHealth;

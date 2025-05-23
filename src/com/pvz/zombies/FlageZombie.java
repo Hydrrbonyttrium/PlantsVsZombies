@@ -1,10 +1,5 @@
 package com.pvz.zombies;
 
-import java.awt.Graphics;
-import java.awt.Toolkit;
-
-import com.pvz.plants.Plants;
-
 public class FlageZombie  extends Zombies {
 
 

@@ -60,7 +60,7 @@ public class Cube {
     int height=116;
     int row;
     int column;
-    Plants plant;
+    public Plants plant;
 
     public Cube(int row, int column) {
         this.row = row;

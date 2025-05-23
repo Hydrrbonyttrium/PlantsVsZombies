@@ -1,10 +1,8 @@
 package com.pvz.plants;
 
-import java.awt.Toolkit;
 import java.util.List;
 
 import com.pvz.bullets.Bullets;
-import com.pvz.bullets.PeaBullet;
 import com.pvz.bullets.SunBullet;
 
 public class SunFlower extends Plants  {

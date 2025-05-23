@@ -8,6 +8,7 @@ import com.pvz.plants.PeaShooter;
 import com.pvz.plants.Plants;
 import com.pvz.plants.Repeater;
 import com.pvz.plants.SunFlower;
+import com.pvz.plants.WallNut;
 import com.pvz.ui.SeedBank;
 
 
@@ -68,6 +69,8 @@ public  class SeedPackets {
                 return new SunFlower(x, y, 0,0,17);
             case "SeedPacketPeaShooter":
                 return new PeaShooter(x, y,0,0,8);
+            case "SeedPacketWallNut":
+                return new WallNut(x, y,0,0,16);
             default:
                 return null; // Handle other cases or throw an exception
         }

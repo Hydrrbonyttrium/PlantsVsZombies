@@ -1,11 +1,9 @@
 package com.pvz.bullets;
 import java.awt.Graphics;
 import java.awt.Toolkit;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.Timer;
 public class SunBullet extends Bullets  {
-    private int SUN_DISAPPER_TIMER = 30000;
+    private int SUN_DISAPPER_TIMER = 5000;
     private boolean isCollected;
     public Timer sunTimer;
     public boolean ifDisapper=false;
@@ -16,23 +14,29 @@ public class SunBullet extends Bullets  {
         System.out.println("生成阳光");
         this.speed = 0;
         this.damage = 0;
-        sunTimer = new Timer();
+
         initsunTimer();
         
     }
 
     public void initsunTimer(){
         
-        
+        if (this.sunTimer != null) {
+            this.sunTimer.cancel();
+        }
+        this.sunTimer = new Timer(true); // 使用守护线程的Timer更安全
         sunTimer.schedule(new java.util.TimerTask() {
             @Override
             public void run() {
                 ifDisapper=true;
-                System.out.println("sun disapper");
+                // System.out.println("sun disapper");
+                // 当阳光消失后，这个TimerTask完成了它的使命，
+                // 但Timer对象本身若不随SunBullet销毁而被cancel，则会泄露。
             }
-        }, SUN_DISAPPER_TIMER); // 5秒后执行
-
+        }, SUN_DISAPPER_TIMER);
     }
+
+
     @Override
     public void loadImage(String path) {
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -71,4 +75,12 @@ public class SunBullet extends Bullets  {
         return isCollected;
     }
 
+    @Override
+    public void dispose() {
+        super.dispose(); // 调用父类的dispose方法
+        if (sunTimer != null) {
+            sunTimer.cancel();
+            sunTimer = null; // 帮助垃圾回收
+        }
+    }
 }

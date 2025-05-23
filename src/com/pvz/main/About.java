@@ -12,9 +12,6 @@ import javax.swing.JLabel;
 import javax.swing.ImageIcon;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.Component;
-import javax.swing.Box;
-import java.awt.Color;
 import javax.swing.SwingConstants;
 
 public class About extends JDialog {

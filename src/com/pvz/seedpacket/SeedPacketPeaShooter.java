@@ -1,7 +1,6 @@
 package com.pvz.seedpacket;
 
 import com.pvz.plants.PeaShooter;
-import com.pvz.plants.Repeater;
 
 public class SeedPacketPeaShooter extends SeedPackets {
     public SeedPacketPeaShooter(int x, int y) {
