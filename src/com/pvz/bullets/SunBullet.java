@@ -64,7 +64,7 @@ public class SunBullet extends Bullets  {
     // 收集阳光的方法
     public void collectSun() {
         // 增加游戏面板中的阳光数量
-        com.pvz.main.GamePanel.sunCount += 25; // 每个阳光增加25点阳光值
+        com.pvz.main.GamePanel.sunCount += 50; // 每个阳光增加25点阳光值
         
         // 标记阳光为已收集，后续可以移除
         this.isCollected = true;

@@ -109,6 +109,25 @@ public class GameFrame extends JFrame  {
 		});
 		mnNewMenu.add(mntmNewMenuItem_1);
 		
+		JMenuItem mntmNewMenuItem_2 = new JMenuItem("重新开始");
+		mntmNewMenuItem_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				 // 确认重新开始
+				 int choice = JOptionPane.showConfirmDialog(GameFrame.this,
+				 "确定要重新开始游戏吗？当前进度将丢失。",
+				 "重新开始",
+				 JOptionPane.YES_NO_OPTION,
+				 JOptionPane.QUESTION_MESSAGE);
+		 
+				if (choice == JOptionPane.YES_OPTION) {
+					restartGame();
+				}
+		 }
+
+			
+		});
+		mnNewMenu.add(mntmNewMenuItem_2);
+		
 		JMenu menu = new JMenu("帮助");
 		menuBar.add(menu);
 		
@@ -126,7 +145,6 @@ public class GameFrame extends JFrame  {
 		JMenuItem mntmNewMenuItem = new JMenuItem("排行榜");
 		mntmNewMenuItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				// 确保 gamePanel 实例存在且其 mysql 实例也存在
 				if (gamePanel != null) {
 					Mysql mysqlInstance = gamePanel.getMysqlInstance();
 					if (mysqlInstance != null) {
@@ -134,11 +152,10 @@ public class GameFrame extends JFrame  {
 						leaderboardDialog.setVisible(true);
 					} else {
 						System.err.println("无法打开排行榜：数据库服务未初始化。");
-						// 可以在此向用户显示一个错误消息对话框
 					}
 				} else {
 					System.err.println("无法打开排行榜：游戏面板未初始化。");
-					// 可以在此向用户显示一个错误消息对话框
+
 				}
 			}
 		});
@@ -175,6 +192,47 @@ public class GameFrame extends JFrame  {
 		// 设置窗口不可调整大小
 		// setResizable(false);
 		
+		
+	}
+	private void restartGame() {
+			// 移除当前的游戏面板
+			if (gamePanel != null) {
+			contentPane.remove(gamePanel);
+			// 停止当前游戏的所有计时器和线程
+			gamePanel.stopAllTimers();
+		}
+		
+		// 创建新的游戏面板
+		this.gamePanel = new GamePanel(this);
+		this.gamePanel.addMouseListener(new MouseAdapter() {
+			
+		});
+		gamePanel.setBounds(0, 0, 820, 540);
+		contentPane.add(gamePanel);
+		
+		// 重新设置布局
+		GroupLayout gl_gamePanel = new GroupLayout(gamePanel);
+		gl_gamePanel.setHorizontalGroup(
+			gl_gamePanel.createParallelGroup(Alignment.LEADING)
+				.addGap(0, 820, Short.MAX_VALUE)
+		);
+		gl_gamePanel.setVerticalGroup(
+			gl_gamePanel.createParallelGroup(Alignment.LEADING)
+				.addGap(0, 540, Short.MAX_VALUE)
+		);
+		this.gamePanel.setLayout(gl_gamePanel);
+		this.gamePanel.setDifficulty(gamePanel.getDifficulty());
+		
+		// 刷新界面
+		contentPane.revalidate();
+		contentPane.repaint();
+		
+		// 重新设置窗口大小
 
+		gamePanel.setFramSize();
+		setLocationRelativeTo(null);
+		
+		System.out.println("游戏已重新开始");
 	}
 }
+

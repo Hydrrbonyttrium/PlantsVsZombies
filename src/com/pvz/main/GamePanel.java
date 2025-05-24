@@ -63,7 +63,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	public static SeedBank seedBank = new SeedBank(0,0);
 	
 	//数据
-	public static int sunCount = 5000;
+	public static int sunCount = 500;
 	public int sunCountMax = 9999;
 
 	private int countdownSeconds;
@@ -90,7 +90,11 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 
 	private Timer zombieSpawnTimer;
-	private final int ZOMBIE_SPAWN_INTERVAL = 20000; // 5 seconds
+	private long currentZombieSpawnInterval;
+	private long INITIAL_ZOMBIE_SPAWN_INTERVAL = 20000; // 初始生成间隔：20秒
+	private long MIN_ZOMBIE_SPAWN_INTERVAL = 5000;    // 最小生成间隔：5秒
+	private long SPAWN_INTERVAL_REDUCTION_STEP_TIME = 30000; // 每30秒调整一次间隔
+	private long SPAWN_INTERVAL_REDUCTION_AMOUNT = 1000;
 
 
 		// 添加难度相关常量
@@ -117,10 +121,14 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 	public int ConeheadZombieRate;
 	public int BuckedheadZombieRate;
 
+	private AudioManager audioManager;
+
 
 	public GamePanel(JFrame frame) {
 		
 		this.frame = frame;
+
+		this.audioManager = new AudioManager();
 
 		this.shovel = new Shovel();
 
@@ -147,9 +155,9 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		this.addMouseMotionListener(this);
 		this.setFocusable(true);
 
-		
-		initCountdownTimer();
+		initSpawnInterval();
 		initSpawnZombieTimer();
+		initCountdownTimer();
 
 		
 
@@ -157,6 +165,37 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		t.start();
 		
 		
+	}
+
+	private void initSpawnInterval() {
+		switch (difficulty) {
+			case TEST:
+				INITIAL_ZOMBIE_SPAWN_INTERVAL = 20000; // 初始生成间隔：20秒
+				MIN_ZOMBIE_SPAWN_INTERVAL = 200;    // 最小生成间隔：0秒
+				SPAWN_INTERVAL_REDUCTION_STEP_TIME = 10000; // 每10秒调整一次间隔
+				SPAWN_INTERVAL_REDUCTION_AMOUNT = 1000;// 每次减少1秒
+				break;
+			case EASY:
+				INITIAL_ZOMBIE_SPAWN_INTERVAL = 20000; // 初始生成间隔：20秒
+				MIN_ZOMBIE_SPAWN_INTERVAL = 500;    // 最小生成间隔：5秒
+				SPAWN_INTERVAL_REDUCTION_STEP_TIME = 30000; // 每30秒调整一次间隔
+				SPAWN_INTERVAL_REDUCTION_AMOUNT = 1000;// 每次减少1秒
+				break;
+			case NORMAL:
+				INITIAL_ZOMBIE_SPAWN_INTERVAL = 15000; // 初始生成间隔：15秒
+				MIN_ZOMBIE_SPAWN_INTERVAL = 300;    // 最小生成间隔：3秒
+				SPAWN_INTERVAL_REDUCTION_STEP_TIME = 20000; // 每20秒调整一次间隔
+				SPAWN_INTERVAL_REDUCTION_AMOUNT = 500;// 每次减少0.5秒
+				break;
+			case HARD:
+				INITIAL_ZOMBIE_SPAWN_INTERVAL = 10000; // 初始生成间隔：10秒
+				MIN_ZOMBIE_SPAWN_INTERVAL = 200;    // 最小生成间隔：2秒
+				SPAWN_INTERVAL_REDUCTION_STEP_TIME = 15000; // 每15秒调整一次间隔
+				SPAWN_INTERVAL_REDUCTION_AMOUNT = 1000;// 每次减少1秒
+				break;
+			default:
+				break;
+		}
 	}
 
 	public void paint(Graphics g) {
@@ -189,40 +228,25 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		
 
 	
-	
-	private void drawShovel(Graphics g) {
-		g.drawImage(shovel.bankImage, shovel.bankx, shovel.banky, shovel.bankWidth, shovel.bankHeight, null);
-		if(shovel.isClicked) {
-			g.drawImage(shovel.shovelImage, currentMousex-shovel.shovelWidth/2, currentMousey-shovel.shovelHeight/2, shovel.shovelWidth, shovel.shovelHeight, null);
-		}
-		else{
-			g.drawImage(shovel.shovelImage, shovel.shovelx, shovel.shovely, shovel.shovelWidth, shovel.shovelHeight, null);
-		}
-	}
-
 	public void run() {
 		while(true) {
 			
-			
-			// setFramSize();
-	
 			if (state == RUNNING) {
 
 
 				updateZombies(); // 更新僵尸位置
 				
 				plantAttack(); // 攻击子弹
-
-
+				
 				checkBulletZombieCollisions(); // 检查子弹和僵尸的碰撞
-
+				
 				checkZombiePlantCollisions(); // 检查僵尸和植物的碰撞
-
+				
 				cleanDeadPlants(); // 清理已经死亡的植物
-
+				
 				checkGameOver(); // 检查游戏是否结束
-
-
+				
+				
 			}
 			
 			this.repaint();
@@ -235,12 +259,34 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		}
 	}
 	
+	
+	public void updateZombies(){
+		for (int i = 0; i < zombies.size(); i++) {
+			List<Zombies> zombie_row = zombies.get(i);
+			Iterator<Zombies> iterator = zombie_row.iterator();
+			while (iterator.hasNext()) {
+				Zombies zombie = iterator.next();
+				zombie.move();
+				if (!zombie.isAlive()) {
+					iterator.remove();
+				}
+			}
+		}
+	}
+	private void drawShovel(Graphics g) {
+		g.drawImage(shovel.bankImage, shovel.bankx, shovel.banky, shovel.bankWidth, shovel.bankHeight, null);
+		if(shovel.isClicked) {
+			g.drawImage(shovel.shovelImage, currentMousex-shovel.shovelWidth/2, currentMousey-shovel.shovelHeight/2, shovel.shovelWidth, shovel.shovelHeight, null);
+		}
+		else{
+			g.drawImage(shovel.shovelImage, shovel.shovelx, shovel.shovely, shovel.shovelWidth, shovel.shovelHeight, null);
+		}
+	}
+	
 
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-
-		
 	}
 
 	@Override
@@ -269,6 +315,8 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 				state = RUNNING;
 				gameTimer = new GameTimer(); // 假设 GameTimer 是你实现的计时器类
 				setFramSize();
+
+				startGameBGM();
 			}
 			return;
 		}
@@ -396,6 +444,11 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		}
 	}
 
+	private void startGameBGM() {
+		String bgmPath = "src/resource/audios/bgm.wav"; 
+		audioManager.playBGM(bgmPath);
+	}
+
 	@Override
 	public void mouseReleased(MouseEvent e) {
 	}
@@ -416,7 +469,7 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 
 	private void initCountdownTimer() {
-		// countdownSeconds 应该已经被 initSpawnZombieTimer 根据当前难度设置了
+
 		if (this.countdownSeconds > 0) {
 			this.isCountingDown = true;
 		} else {
@@ -555,6 +608,8 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 
 		// 将僵尸添加到对应的行
 		zombies.get(row).add(zombie);
+
+		scheduleNextZombieSpawn(); // 生成下一个僵尸
 	}
 
 
@@ -576,6 +631,8 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		int initialDelay = getInitialDelayByDifficulty();
 		countdownSeconds = initialDelay / 1000; // 设置用于倒计时的秒数
 		
+		currentZombieSpawnInterval = INITIAL_ZOMBIE_SPAWN_INTERVAL;
+
 		zombieSpawnTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -584,9 +641,47 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 					spawnZombie();
 				}
 			}
-		}, initialDelay, ZOMBIE_SPAWN_INTERVAL);
+		}, initialDelay);
 
 	}
+
+	private void calculateNextSpawnInterval() {
+		if (gameTimer == null) { 
+			currentZombieSpawnInterval = INITIAL_ZOMBIE_SPAWN_INTERVAL;
+			return;
+		}
+	
+		long elapsedTime = gameTimer.getGameTime(); // 获取游戏已进行时间（毫秒）
+		
+		// 计算基于游戏时间的间隔缩减量
+		long reductionSteps = elapsedTime / SPAWN_INTERVAL_REDUCTION_STEP_TIME;
+		long totalReduction = reductionSteps * SPAWN_INTERVAL_REDUCTION_AMOUNT;
+		
+		currentZombieSpawnInterval = INITIAL_ZOMBIE_SPAWN_INTERVAL - totalReduction;
+		
+		//确保生成间隔不小于最小值
+		if (currentZombieSpawnInterval < MIN_ZOMBIE_SPAWN_INTERVAL) {
+			currentZombieSpawnInterval = MIN_ZOMBIE_SPAWN_INTERVAL;
+		}
+		// 用于调试，可以观察间隔变化
+		System.out.println("Elapsed time: " + (elapsedTime / 1000) + "s, Next zombie spawn interval: " + (currentZombieSpawnInterval / 1000) + "s");
+	}
+
+	private void scheduleNextZombieSpawn() {
+		if (state == RUNNING && zombieSpawnTimer != null) {
+			calculateNextSpawnInterval(); // 计算下一次的生成间隔
+			zombieSpawnTimer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					if (state == RUNNING) {
+						spawnZombie();
+					}
+				}
+			}, currentZombieSpawnInterval); // 使用计算出的动态间隔
+		}
+	}
+	
+	
 
 	
 
@@ -716,19 +811,6 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 		this.setSize(width, height);
 	}
 
-	public void updateZombies(){
-		for (int i = 0; i < zombies.size(); i++) {
-			List<Zombies> zombie_row = zombies.get(i);
-			Iterator<Zombies> iterator = zombie_row.iterator();
-			while (iterator.hasNext()) {
-				Zombies zombie = iterator.next();
-				zombie.move();
-				if (!zombie.isAlive()) {
-					iterator.remove();
-				}
-			}
-		}
-	}
 
 	public void checkZombiePlantCollisions() {
 		// 遍历每一行
@@ -870,6 +952,8 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 			}
 		}
 
+		audioManager.stopBGM(); // 停止背景音乐
+
 	}
 	public Mysql getMysqlInstance() {
 		return this.mysql;
@@ -882,6 +966,8 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
     public void setDifficulty(int selectedDifficulty) {
         this.difficulty = selectedDifficulty;
 		System.out.println("Difficulty set to: " + this.difficulty);
+
+		initSpawnInterval();
 
 		// 取消现有的计时器
 		if (countdownTimer != null) {
@@ -905,19 +991,86 @@ public class GamePanel extends JPanel implements Runnable ,MouseListener,MouseMo
 				sunCount = 9999;
 				break;
 			case EASY:
-				sunCount = 200;
+				sunCount = 500;
 				break;
 			case NORMAL:
-				sunCount = 100;
+				sunCount = 200;
 				break;
 			case HARD:
-				sunCount = 50;
+				sunCount = 150;
 				break;
 			default:
-				sunCount = 100;
+				sunCount = 500;
 				break;
 		}
     }
+
+
+	public void stopAllTimers() {
+		// 停止倒计时计时器
+		if (countdownTimer != null) {
+			countdownTimer.cancel();
+			countdownTimer = null;
+		}
+		
+		// 停止僵尸生成计时器
+		if (zombieSpawnTimer != null) {
+			zombieSpawnTimer.cancel();
+			zombieSpawnTimer = null;
+		}
+		
+		// 停止游戏计时器
+		if (gameTimer != null) {
+			gameTimer.stopGameTimer();
+			gameTimer = null;
+		}
+		
+		// 清理所有游戏对象
+		clearGameObjects();
+		
+		// 断开数据库连接
+		if (mysql != null) {
+			mysql.disconnect();
+		}
+	}
+	
+	/**
+	 * 清理所有游戏对象
+	 */
+	private void clearGameObjects() {
+		// 清理植物
+		for (int i = 0; i < cubes.length; i++) {
+			for (int j = 0; j < cubes[i].length; j++) {
+				Plants plant = cubes[i][j].getPlant();
+				if (plant != null) {
+					plant.dispose();
+					cubes[i][j].setPlant(null);
+				}
+			}
+		}
+		
+		// 清理僵尸
+		for (List<Zombies> zombieRow : zombies) {
+			for (Zombies zombie : zombieRow) {
+				zombie.dispose();
+			}
+			zombieRow.clear();
+		}
+		
+		// 清理子弹
+		for (List<Bullets> bulletRow : bullets) {
+			for (Bullets bullet : bulletRow) {
+				bullet.dispose();
+			}
+			bulletRow.clear();
+		}
+		
+		// 清理阳光
+		for (SunBullet sunBullet : sun) {
+			sunBullet.dispose();
+		}
+		sun.clear();
+	}
 }
 
 

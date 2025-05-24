@@ -42,13 +42,6 @@ public class Shovel {
         
         if (x >= bankx && x <= bankx + bankWidth && y >= banky && y <= banky + bankHeight) {
             isClicked = !isClicked;
-        } else {
-
-
-        }
+        } 
     }
-
-
-
-
 }

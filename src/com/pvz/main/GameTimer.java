@@ -43,7 +43,7 @@ public class GameTimer {
         }
     }
 
-    private void drawGameTime(Graphics g) {
+    public void drawGameTime(Graphics g) {
     // 格式化时间为分:秒
         long seconds = gameTime / 1000;
         long minutes = seconds / 60;

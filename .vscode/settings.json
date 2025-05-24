@@ -2,7 +2,8 @@
     "Codegeex.RepoIndex": true,
     "Codegeex.CompletionDelay": 0.2,
     "java.project.outputPath": "${workspaceFolder:}/bin",
-    "Codegeex.CommitMessageStyle": "Default",
+    "Codegeex.CommitMessageStyle": "ConventionalCommits",
     "Codegeex.Chat.fontSize": 12,
     "Codegeex.GenerationPreference": "automatic",
+    "Codegeex.SidebarUI.LanguagePreference": "中文",
 }
