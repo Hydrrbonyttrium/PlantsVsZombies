@@ -102,6 +102,8 @@ public class GameFrame extends JFrame  {
 													"难度已设置为: " + options[choice] + "。\n僵尸生成速度和初始倒计时将更新。", 
 													"难度设置", 
 													JOptionPane.INFORMATION_MESSAGE);
+
+						restartGame(selectedDifficulty);
 					}
 				}
 			}
@@ -120,7 +122,7 @@ public class GameFrame extends JFrame  {
 				 JOptionPane.QUESTION_MESSAGE);
 		 
 				if (choice == JOptionPane.YES_OPTION) {
-					restartGame();
+					restartGame(gamePanel.getDifficulty());
 				}
 		 }
 
@@ -194,7 +196,7 @@ public class GameFrame extends JFrame  {
 		
 		
 	}
-	private void restartGame() {
+	private void restartGame(int difficulty) {
 			// 移除当前的游戏面板
 			if (gamePanel != null) {
 			contentPane.remove(gamePanel);
@@ -221,7 +223,7 @@ public class GameFrame extends JFrame  {
 				.addGap(0, 540, Short.MAX_VALUE)
 		);
 		this.gamePanel.setLayout(gl_gamePanel);
-		this.gamePanel.setDifficulty(gamePanel.getDifficulty());
+		this.gamePanel.setDifficulty(difficulty); // 设置新的难度
 		
 		// 刷新界面
 		contentPane.revalidate();
